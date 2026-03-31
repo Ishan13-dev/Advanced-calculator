@@ -1,0 +1,721 @@
+/**
+ * Advanced Calculator with History - Working Styles
+ *
+ * Features:
+ * - Dark blue theme optimized for eye comfort
+ * - Responsive design for all screen sizes
+ * - Smooth animations and transitions
+ * - Professional button styling
+ *
+ * @author Senior Developer
+ * @version 3.0.0
+ * @license MIT
+ */
+
+/* ============ RESET & BASE STYLES ============ */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+*,
+*::before,
+*::after {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+html {
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+html.dark {
+    color-scheme: dark;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-weight: 400;
+    background-attachment: fixed;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============ THEME VARIABLES ============ */
+:root {
+    /* Dark Blue Theme - Eye Comfort Optimized */
+    --color-bg-primary: #0f172a;
+    --color-bg-secondary: #1e293b;
+    --color-bg-tertiary: #334155;
+    --color-text-primary: #f1f5f9;
+    --color-text-secondary: #cbd5e1;
+    --color-text-muted: #94a3b8;
+    --color-accent: #3b82f6;
+    --color-accent-hover: #2563eb;
+    --color-border: rgba(59, 130, 246, 0.2);
+
+    /* Button Colors - Eye Comfort Optimized */
+    --color-btn-number: #1e293b;
+    --color-btn-number-hover: #334155;
+    --color-btn-operator: #581c87;
+    --color-btn-operator-hover: #6b21a8;
+    --color-btn-action: #991b1b;
+    --color-btn-action-hover: #b91c1c;
+    --color-btn-equals: #14532d;
+    --color-btn-equals-hover: #166534;
+    --color-btn-scientific: #1e293b;
+    --color-btn-scientific-hover: #334155;
+
+    /* Button Text */
+    --color-btn-text: #f1f5f9;
+}
+
+/* Light Theme Variables */
+html:not(.dark) {
+    --color-bg-primary: #f8fafc;
+    --color-bg-secondary: #e2e8f0;
+    --color-bg-tertiary: #cbd5e1;
+    --color-text-primary: #1e293b;
+    --color-text-secondary: #475569;
+    --color-text-muted: #64748b;
+    --color-accent: #3b82f6;
+    --color-accent-hover: #2563eb;
+    --color-border: rgba(59, 130, 246, 0.2);
+
+    /* Light Theme Button Colors */
+    --color-btn-number: #dbeafe;
+    --color-btn-number-hover: #bfdbfe;
+    --color-btn-operator: #ddd6fe;
+    --color-btn-operator-hover: #c4b5fd;
+    --color-btn-action: #fecaca;
+    --color-btn-action-hover: #fca5a5;
+    --color-btn-equals: #bbf7d0;
+    --color-btn-equals-hover: #a7f3d0;
+    --color-btn-scientific: #dbeafe;
+    --color-btn-scientific-hover: #bfdbfe;
+
+    /* Light Theme Button Text */
+    --color-btn-text: #1e293b;
+}
+
+/* ============ BUTTON STYLES ============ */
+.btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    border: 2px solid transparent;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.btn:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.btn:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+}
+
+/* Button Variants */
+.btn-number {
+    background-color: var(--color-btn-number);
+    color: var(--color-btn-text);
+    border-color: var(--color-accent);
+}
+
+.btn-number:hover {
+    background-color: var(--color-btn-number-hover);
+    border-color: var(--color-accent-hover);
+}
+
+.btn-operator {
+    background-color: var(--color-btn-operator);
+    color: var(--color-btn-text);
+}
+
+.btn-operator:hover {
+    background-color: var(--color-btn-operator-hover);
+}
+
+.btn-action {
+    background-color: var(--color-btn-action);
+    color: var(--color-btn-text);
+    font-weight: 700;
+}
+
+.btn-action:hover {
+    background-color: var(--color-btn-action-hover);
+}
+
+.btn-equals {
+    background-color: var(--color-btn-equals);
+    color: var(--color-btn-text);
+    font-weight: 700;
+}
+
+.btn-equals:hover {
+    background-color: var(--color-btn-equals-hover);
+}
+
+.btn-scientific {
+    background-color: var(--color-btn-scientific);
+    color: var(--color-btn-text);
+    border-color: var(--color-accent);
+    font-size: 0.875rem;
+}
+
+.btn-scientific:hover {
+    background-color: var(--color-btn-scientific-hover);
+    border-color: var(--color-accent-hover);
+}
+
+/* ============ DISPLAY STYLES ============ */
+#previousDisplay {
+    text-align: right;
+    color: var(--color-accent);
+    font-size: 0.875rem;
+    height: 1.25rem;
+    overflow: hidden;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+#display {
+    width: 100%;
+    text-align: right;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    background-color: var(--color-bg-tertiary);
+    border: 2px solid var(--color-accent);
+    outline: none;
+    font-size: 1.875rem;
+    font-weight: 500;
+    color: var(--color-text-primary);
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+    box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+}
+
+#display:focus {
+    background-color: var(--color-bg-secondary);
+    border-color: var(--color-accent-hover);
+    box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 30px rgba(59, 130, 246, 0.3);
+}
+
+#display::-webkit-outer-spin-button,
+#display::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* ============ CALCULATOR CONTAINER ============ */
+.calculator-container {
+    background: linear-gradient(135deg, var(--color-bg-secondary) 0%, var(--color-bg-primary) 50%, var(--color-bg-secondary) 100%);
+    border-radius: 2rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    padding: 1.5rem;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--color-border);
+    position: relative;
+    overflow: hidden;
+}
+
+/* ============ HISTORY STYLES ============ */
+#history {
+    background-color: rgba(30, 41, 59, 0.5);
+    border-radius: 1rem;
+    padding: 1rem;
+    flex: 1;
+    overflow-y: auto;
+    border: 1px solid var(--color-border);
+    box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* ============ RESPONSIVE DESIGN ============ */
+
+/* Mobile - Extra Small (320px) */
+@media (max-width: 640px) {
+    .calculator-container {
+        padding: 1rem;
+        border-radius: 1.5rem;
+    }
+
+    #display {
+        font-size: 1.5rem;
+        height: 3.5rem;
+        padding: 0.75rem;
+    }
+
+    .btn {
+        padding: 0.875rem;
+        font-size: 0.875rem;
+    }
+
+    .btn-scientific {
+        font-size: 0.75rem;
+        padding: 0.75rem;
+    }
+}
+
+/* Tablet - Small (641px to 1024px) */
+@media (min-width: 641px) and (max-width: 1024px) {
+    #display {
+        font-size: 2rem;
+        height: 4rem;
+    }
+
+    .btn {
+        padding: 1rem;
+    }
+}
+
+/* Desktop - Large (1025px+) */
+@media (min-width: 1025px) {
+    .calculator-container {
+        padding: 2rem;
+    }
+
+    #display {
+        font-size: 2.25rem;
+        height: 5rem;
+    }
+
+    .btn {
+        padding: 1.25rem;
+        font-size: 1.125rem;
+    }
+}
+
+/* ============ ACCESSIBILITY ============ */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: more) {
+    .btn-base {
+        border-width: 3px;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .main-display {
+        border-width: 3px;
+        box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.4), var(--shadow-glow);
+    }
+}
+
+/* Focus visible for keyboard navigation */
+.btn-base:focus-visible,
+.main-display:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+}
+
+/* ============ PRINT STYLES ============ */
+@media print {
+    body {
+        background: white !important;
+        color: black !important;
+    }
+
+    .calculator-container,
+    .history-container,
+    .btn-base,
+    .main-display {
+        background: white !important;
+        color: black !important;
+        border: 2px solid black !important;
+        box-shadow: none !important;
+    }
+}
+
+/* ============ LEGACY SUPPORT ============ */
+@supports not (backdrop-filter: blur(10px)) {
+    .calculator-container {
+        background: var(--color-bg-secondary);
+    }
+
+    .history-container {
+        background: var(--color-bg-tertiary);
+    }
+}
+
+.btn-scientific {
+    background-color: #1e3a5f;
+    color: #e0f2fe;
+    border-color: #3b82f6;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.btn-scientific:hover {
+    background-color: #2d5a8e;
+    border-color: #0ea5e9;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(14, 165, 233, 0.3);
+}
+
+.btn-scientific:active {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.2);
+    box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.3), 0 0 20px rgba(3, 102, 214, 0.15);
+}
+
+input#display::-webkit-outer-spin-button,
+input#display::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input#display:focus {
+    box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.3), 0 0 30px rgba(6, 182, 212, 0.25)ont-smoothing: antialiased;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+input#display::-webkit-outer-spin-button,
+input#display::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}3b82f6 #1e3a5f;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #1e3a5f;
+    border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #3b82f6, #0ea5e9);
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #0ea5e9, #06b6d4);
+    box-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
+    transition: background 0.3s ease;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+}
+
+/* ============ ANIMATIONS ============ */
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;3, 102, 214, 0.7);
+    }
+    50% {
+        box-shadow: 0 0 0 10px rgba(3, 102, 214, 0);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -1000px 0;
+    }
+    100% {
+        background-position: 1000px 0
+
+@keyframes pulse-glow {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+    }
+    50% {
+        box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+    }
+}
+
+.btn-number:focus,
+.btn-operator:focus,
+.btn-action:focus,
+.btn-equals:focus,
+.btn-scientific:focus {
+    outline: none;
+    animation: pulse-glow 0.6s cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+/* ============ RESPONSIVE DESIGN ============ */
+
+/* Mobile - Extra Small (320px) */
+@media (max-width: 640px) {
+    body {
+        padding: 0.5rem;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+    }
+
+    input#display {
+        font-size: 1.5rem !important;
+        height: 3.5rem !important;
+        box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.3), 0 0 15px rgba(3, 102, 214, 0.12) !important;
+    }
+
+    #previousDisplay {
+        font-size: 0.75rem;
+    }
+
+    h1 {
+        font-size: 1.5rem !important;
+    }
+
+    h2 {
+        font-size: 1rem !important;
+    }
+
+    .grid {
+        gap: 0.5rem !important;ont-size: 1rem !important;
+    }
+
+    .grid {
+        gap: 0.5rem !important;
+    }
+
+    /* Make history full width on mobile in single column */
+    @media (max-width: 768px) {
+        .grid.grid-cols-1.lg\\:grid-cols-3 {
+            grid-template-columns: 1fr !important;
+        }
+    }
+}
+
+/* Tablet - Small (641px to 1024px) */
+@media (min-width: 641px) and (max-width: 1024px) {
+    .btn-number,
+    .btn-operator,
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    input#display {
+        font-size: 2rem !important;
+        height: 4rem !important;
+        box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.3), 0 0 20px rgba(3, 102, 214, 0.15).95rem;
+        min-height: 50px;
+    }
+
+    input#display {
+        font-size: 2rem !important;
+        height: 4rem !important;
+    }
+}
+
+/* Desktop - Large (1025px+) */
+@media (min-width: 1025px) {
+    .btn-number,
+    .btn-operator,
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    input#display {
+        font-size: 2.25rem !important;
+        height: 5rem !important;
+        box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.3), 0 0 25px rgba(3, 102, 214, 0.2) !important;
+    }
+}
+
+/* ============ LIGHT THEME OVERRIDE ============ */
+body:not(.dark) .btn-number {
+    background-color: #e0e7ff;
+    color: #1e40af;
+    border-color: #3b82f6;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.15);
+}
+
+body:not(.dark) .btn-number:hover {
+    background-color: #c7d2fe;
+    border-color: #0284c7;
+    box-shadow: 0 8px 25px rgba(2, 132, 199, 0.25);
+}
+
+body:not(.dark) .btn-scientific {
+    background-color: #dbeafe;
+    color: #1e40af;
+    border-color: #0ea5e9;
+    box-shadow: 0 4px 15px rgba(14, 165, 233, 0.15);
+}
+
+body:not(.dark) .btn-scientific:hover {
+    background-color: #bfdbfe;
+    border-color: #0284c7;
+    box-shadow: 0 8px 25px rgba(2, 132, 199, 0.25);
+}
+
+body:not(.dark) input#display {
+    background-color: #f0f9ff;
+    color: #0c2d6b;
+    border-color: #0284c7;
+    box-shadow: inset 0 4px 12px rgba(2, 132, 199, 0.1), 0 0 20px rgba(2, 132, 199, 0.1) !important;
+}
+
+body:not(.dark) input#display:focus {
+    background-color: #e0f2fe;
+    border-color: #0ea5e9;
+    box-shadow: inset 0 4px 12px rgba(14, 165, 233, 0.15), 0 0 30px rgba(14, 165, 233, 0.2) !important;
+}
+
+/* Light theme - History section */
+body:not(.dark) .bg-slate-700\/50 {
+    background-color: #e5e7eb !important;
+    border-color: #93c5fd !important;
+}
+
+body:not(.dark) .hover\:shadow-blue-500\/20:hover {
+    box-shadow: 0 20px 25px -5px rgba(59, 130, 246, 0.1)900) .text-gray-400 {
+    color: #6b7280 !important;
+}
+
+body:not(.bg-gray-900) .bg-gray-600 {
+    background-color: #d1d5db !important;
+    color: #111827;
+}
+
+/* ============ ACCESSIBILITY ============ */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: more) {
+    .btn-number,
+    .btn-operator,
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4) !important;
+    }
+
+    input#display {
+        border-width: 3px;
+        box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 30px rgba(3, 102, 214, 0.3) !important;
+    }
+}
+
+/* Focus visible for keyboard navigation */
+button:focus-visible {
+    outline: 2px solid #0ea5e9;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.2), 0 8px 25px rgba(14, 165, 233, 0.3);
+}
+
+input:focus-visible {
+    outline: 2px solid #0ea5e9;
+    outline-offset: 2px;
+}
+
+/* ============ PRINT STYLES ============ */
+@media print {
+    body {
+        background: white;
+        color: black;
+    }
+
+    .btn-number,
+    .btn-operator,
+    .btn-action,
+    .btn-equals,
+    .btn-scientific {
+        border: 2px solid black;
+        box-shadow: none;
+    }
+
+    input#display {
+        border: 2px solid black;
+        box-shadow: none !important;
+    }
+}
+
+/* ============ DARK BLUE THEME ENHANCEMENTS ============ */
+
+/* History item styling */
+.bg-gray-600 {
+    background-color: #1e3a5f !important;
+    border: 1px solid #3b82f6 !important;
+}
+
+.bg-gray-600:hover {
+    background-color: #2d5a8e !important;
+    box-shadow: 0 4px 15px rgba(6, 182, 212, 0.2) !important;
+}
+
+.text-blue-300 {
+    color: #0ea5e9 !important;
+}
+
+.text-gray-400 {
+    color: #93c5fd !important;
+}
+
+/* Modal styling */
+#helpModal .bg-gradient-to-br {
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Glow effects for interactive elements */
+.hover\:shadow-blue-500\/20:hover {
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.3), 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* Header enhancement */
+h1 {
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
+}
+
+/* Smooth transitions for all interactive elements */
+button {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============ PERFORMANCE OPTIMIZATIONS ============ */
+@supports (backdrop-filter: blur(10px)) {
+    .backdrop-blur-sm {
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+    }
+}
+
+/* Hardware acceleration */
+.rounded-3xl {
+    transform: translateZ(0);
+    will-change: auto;btn-action,
+    .btn-equals,
+    .btn-scientific {
+        border: 1px solid black;
+    }
+}

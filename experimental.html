@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Calculator Test</title>
+</head>
+<body>
+    <h1>Calculator Test</h1>
+    <div id="test-results"></div>
+
+    <script>
+        // Simple test to check if calculator loads
+        document.addEventListener('DOMContentLoaded', function() {
+            const results = document.getElementById('test-results');
+
+            // Check if required elements exist
+            const display = document.getElementById('display');
+            const buttons = document.querySelectorAll('.btn');
+
+            results.innerHTML = `
+                <p>Display element: ${display ? 'Found' : 'Not found'}</p>
+                <p>Buttons found: ${buttons.length}</p>
+                <p>Math.js loaded: ${typeof math !== 'undefined' ? 'Yes' : 'No'}</p>
+            `;
+        });
+    </script>
+
+    <!-- Load calculator files -->
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js"></script>
+</body>
+</html>
