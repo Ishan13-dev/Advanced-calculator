@@ -1,523 +1,153 @@
-/**
- * Advanced Calculator with History - Working Implementation
- *
- * Features:
- * - Basic and scientific calculator functions
- * - Full keyboard support
- * - Calculation history with persistence
- * - Theme switching (Dark/Light)
- * - Responsive design
- * - Error handling
- *
- * @author Senior Developer
- * @version 3.0.0
- * @license MIT
- */
-
 'use strict';
 
-// ============ CONFIGURATION ============
-const CONFIG = {
-    STORAGE_KEYS: {
-        THEME: 'calcTheme',
-        HISTORY: 'calcHistory'
-    },
-    THEMES: {
-        DARK: 'dark',
-        LIGHT: 'light'
-    },
-    MAX_HISTORY_ITEMS: 50,
-    DECIMAL_PRECISION: 10
-};
-
-// ============ CALCULATOR CLASS ============
 class Calculator {
+
     constructor() {
         this.display = document.getElementById('display');
-        this.previousDisplay = document.getElementById('previousDisplay');
-        this.historyContainer = document.getElementById('history');
-        this.scientificButtons = document.getElementById('scientificButtons');
-        this.themeToggle = document.getElementById('themeToggle');
-        this.modeToggle = document.getElementById('modeToggle');
-        this.clearHistoryBtn = document.getElementById('clearHistory');
-        this.helpBtn = document.getElementById('helpBtn');
-        this.helpModal = document.getElementById('helpModal');
-        this.closeModal = document.getElementById('closeModal');
+        this.canvas = document.getElementById('graphCanvas');
+        this.ctx = this.canvas?.getContext('2d');
 
         this.currentInput = '';
-        this.previousResult = '';
-        this.isScientificMode = false;
-        this.isDarkTheme = true;
-        this.history = [];
 
         this.init();
     }
 
     init() {
-        this.loadTheme();
-        this.loadHistory();
-        this.setupEventListeners();
-        this.setupKeyboardSupport();
+        this.setupKeyboard();
         this.updateDisplay();
     }
 
-    // ============ EVENT LISTENERS ============
-    setupEventListeners() {
-        // Number buttons
-        document.querySelectorAll('.btn-number').forEach(btn => {
-            btn.addEventListener('click', () => this.handleNumber(btn.dataset.key));
-        });
-
-        // Operator buttons
-        document.querySelectorAll('.btn-operator').forEach(btn => {
-            btn.addEventListener('click', () => this.handleOperator(btn.dataset.key));
-        });
-
-        // Action buttons
-        document.querySelectorAll('.btn-action').forEach(btn => {
-            btn.addEventListener('click', () => this.handleAction(btn.dataset.key));
-        });
-
-        // Scientific buttons
-        document.querySelectorAll('.btn-scientific').forEach(btn => {
-            btn.addEventListener('click', () => this.handleScientific(btn.dataset.key));
-        });
-
-        // Equals button
-        document.querySelector('.btn-equals').addEventListener('click', () => this.calculate());
-
-        // Theme toggle
-        this.themeToggle.addEventListener('click', () => this.toggleTheme());
-
-        // Mode toggle
-        this.modeToggle.addEventListener('click', () => this.toggleMode());
-
-        // History clear
-        this.clearHistoryBtn.addEventListener('click', () => this.clearHistory());
-
-        // Help modal
-        this.helpBtn.addEventListener('click', () => this.showModal());
-        this.closeModal.addEventListener('click', () => this.hideModal());
-        this.helpModal.addEventListener('click', (e) => {
-            if (e.target === this.helpModal) this.hideModal();
-        });
-    }
-
-    // ============ KEYBOARD SUPPORT ============
-    setupKeyboardSupport() {
-        document.addEventListener('keydown', (e) => {
-            // Prevent keyboard when modal is open
-            if (this.helpModal.classList.contains('flex')) {
-                if (e.key === 'Escape') this.hideModal();
-                return;
-            }
-
-            // Handle different key types
-            if (e.key >= '0' && e.key <= '9') {
-                e.preventDefault();
-                this.handleNumber(e.key);
-            } else if (['+', '-', '*', '/', '%'].includes(e.key)) {
-                e.preventDefault();
-                this.handleOperator(e.key);
-            } else if (e.key === 'Enter' || e.key === '=') {
-                e.preventDefault();
-                this.calculate();
-            } else if (e.key === 'Backspace') {
-                e.preventDefault();
-                this.handleAction('backspace');
-            } else if (e.key === 'Escape' || e.key.toLowerCase() === 'c') {
-                e.preventDefault();
-                this.handleAction('clear');
-            } else if (e.key === '.') {
-                e.preventDefault();
-                this.handleNumber('.');
-            } else if (e.ctrlKey) {
-                if (e.key.toLowerCase() === 't') {
-                    e.preventDefault();
-                    this.toggleTheme();
-                } else if (e.key.toLowerCase() === 'm') {
-                    e.preventDefault();
-                    this.toggleMode();
-                } else if (e.key.toLowerCase() === 'l') {
-                    e.preventDefault();
-                    this.clearHistory();
-                }
-            }
-        });
-    }
-
-    // ============ INPUT HANDLING ============
-    getCurrentNumber() {
-        const tokenMatch = this.currentInput.match(/(?:^|[\+\-\*\/\%\(])([0-9]*\.?[0-9]*)$/);
-        return tokenMatch ? tokenMatch[1] : '';
-    }
-
-    handleNumber(key) {
-        if (key === '.') {
-            const currentNumber = this.getCurrentNumber();
-            if (currentNumber.includes('.')) return; // multiple decimals in same token
-
-            if (this.currentInput === '' || /[\+\-\*\/\%\(]$/.test(this.currentInput)) {
-                this.currentInput += '0.';
-                this.updateDisplay();
-                return;
-            }
-        }
-
-        // Replace leading zero with number unless input already includes a decimal or is non-zero
-        if (this.currentInput === '0' && key !== '.') {
-            this.currentInput = key;
-        } else {
-            this.currentInput += key;
-        }
+    // ================= INPUT =================
+    handleInput(val) {
+        this.currentInput += val;
         this.updateDisplay();
     }
 
-    handleOperator(operator) {
-        // Allow starting negative sign, but not other leading operators
-        if (this.currentInput === '') {
-            if (operator === '-') {
-                this.currentInput = '-';
-                this.updateDisplay();
-            }
-            return;
-        }
-
-        // Replace any trailing operator with new one (prevent ++, --, **, etc.)
-        if (/[\+\-\*\/\%]$/.test(this.currentInput)) {
-            this.currentInput = this.currentInput.slice(0, -1) + operator;
-            this.updateDisplay();
-            return;
-        }
-
-        this.currentInput += operator;
+    handleClear() {
+        this.currentInput = '';
         this.updateDisplay();
+        this.clearGraph();
     }
 
-    handleDecimal() {
-        this.handleNumber('.');
-    }
-
-    handleEqual() {
-        this.calculate();
-    }
-
-    handleAction(action) {
-        if (action === 'clear') {
-            this.currentInput = '';
-            this.previousResult = '';
-            this.previousDisplay.textContent = '';
-            this.updateDisplay();
-        } else if (action === 'backspace') {
-            this.currentInput = this.currentInput.slice(0, -1);
-            this.updateDisplay();
-        }
-    }
-
-    handleScientific(func) {
-        // For expression-based behavior, append function call or token
-        const functionAppend = {
-            sqrt: 'sqrt(',
-            cbrt: 'cbrt(',
-            abs: 'abs(',
-            exp: 'exp(',
-            ln: 'ln(',
-            log: 'log(',
-            log10: 'log10(',
-            sin: 'sin(',
-            cos: 'cos(',
-            tan: 'tan(',
-            asin: 'asin(',
-            acos: 'acos(',
-            atan: 'atan(',
-            floor: 'floor(',
-            ceil: 'ceil(',
-            round: 'round(',
-            square: 'pow(',
-            cube: 'pow(',
-            power: 'pow('
-        };
-
-        if (func === 'pi') {
-            this.currentInput += Math.PI.toString();
-            this.updateDisplay();
-            return;
-        }
-
-        if (func === 'e') {
-            this.currentInput += Math.E.toString();
-            this.updateDisplay();
-            return;
-        }
-
-        if (func === 'factorial') {
-            // Add factorial operator or function-style call
-            this.currentInput += '!';
-            this.updateDisplay();
-            return;
-        }
-
-        if (functionAppend[func]) {
-            if (func === 'square') {
-                this.currentInput += 'pow(';
-            } else if (func === 'cube') {
-                this.currentInput += 'pow(';
-            } else if (func === 'power') {
-                this.currentInput += 'pow(';
-            } else {
-                this.currentInput += functionAppend[func];
-            }
-            this.updateDisplay();
-        }
-    }
-
-    // ============ CALCULATION ============
-    calculate() {
-        if (this.currentInput === '') return;
-
-        try {
-            let expression = this.currentInput
-                .replace(/×/g, '*')
-                .replace(/÷/g, '/')
-                .replace(/−/g, '-')
-                .replace(/\^/g, '**');
-
-            // Remove trailing operator to avoid syntax errors
-            if (/[\+\-\*\/\%]$/.test(expression)) {
-                expression = expression.slice(0, -1);
-            }
-
-            // Allow all bracket types by normalizing to parentheses
-            expression = expression
-                .replace(/\{/g, '(').replace(/\}/g, ')')
-                .replace(/\[/g, '(').replace(/\]/g, ')');
-
-            const functionMappings = {
-                '\\babs\\(': 'Math.abs(',
-                '\\bsqrt\\(': 'Math.sqrt(',
-                '\\bcbrt\\(': 'Math.cbrt(',
-                '\\bexp\\(': 'Math.exp(',
-                '\\bln\\(': 'Math.log(',
-                '\\blog10\\(': 'Math.log10(',
-                '\\blog\\(': 'Math.log10(',
-                '\\bsin\\(': 'Math.sin(',
-                '\\bcos\\(': 'Math.cos(',
-                '\\btan\\(': 'Math.tan(',
-                '\\basin\\(': 'Math.asin(',
-                '\\bacos\\(': 'Math.acos(',
-                '\\batan\\(': 'Math.atan(',
-                '\\bfloor\\(': 'Math.floor(',
-                '\\bceil\\(': 'Math.ceil(',
-                '\\bround\\(': 'Math.round(',
-                '\\bpow\\(': 'Math.pow('
-            };
-
-            for (const [pattern, replacement] of Object.entries(functionMappings)) {
-                expression = expression.replace(new RegExp(pattern, 'g'), replacement);
-            }
-
-            // Factorial `!` support using helper function
-            if (expression.includes('!')) {
-                expression = expression.replace(/(\d+)!/g, 'factorial($1)');
-            }
-
-            // Validate expression to avoid unsafe chars
-            if (/[^0-9\.\+\-\*\/\%\(\)\sA-Za-z\,]/.test(expression)) {
-                throw new Error('Invalid expression');
-            }
-
-            // Evaluate using Function for safer alternative to eval
-            const result = Function("'use strict'; const factorial = n => (Number.isInteger(n) && n>=0 ? (n<=1 ? 1 : n*factorial(n-1)) : NaN); return (" + expression + ")")();
-
-            if (!Number.isFinite(result)) {
-                throw new Error('Math error');
-            }
-
-            const formattedResult = this.formatResult(result);
-
-            this.previousDisplay.textContent = `${this.currentInput} =`;
-            this.display.value = formattedResult;
-            this.addToHistory(this.currentInput, formattedResult);
-
-            this.previousResult = formattedResult;
-            this.currentInput = formattedResult.toString();
-
-        } catch (error) {
-            this.showError();
-        }
-    }
-
-    formatResult(num) {
-        if (!Number.isFinite(num)) return 'Error';
-
-        // Handle very large/small numbers
-        if (Math.abs(num) > 1e10 || (Math.abs(num) < 1e-6 && num !== 0)) {
-            return num.toExponential(6);
-        }
-
-        // Round to prevent floating point errors
-        return Math.round(num * Math.pow(10, CONFIG.DECIMAL_PRECISION)) / Math.pow(10, CONFIG.DECIMAL_PRECISION);
-    }
-
-    factorial(n) {
-        if (!Number.isInteger(n) || n < 0 || n > 170) return NaN;
-        if (n === 0 || n === 1) return 1;
-
-        let result = 1;
-        for (let i = 2; i <= n; i++) {
-            result *= i;
-        }
-        return result;
-    }
-
-    // ============ DISPLAY MANAGEMENT ============
     updateDisplay() {
         this.display.value = this.currentInput || '0';
     }
 
-    showError() {
-        this.display.value = 'Error';
-        this.currentInput = '';
-        setTimeout(() => {
+    // ================= CALCULATE =================
+    calculate() {
+        try {
+            let exp = this.currentInput
+                .replace(/×/g, '*')
+                .replace(/÷/g, '/')
+                .replace(/\^/g, '**')
+                .replace(/\[/g, '(').replace(/\]/g, ')')
+                .replace(/\{/g, '(').replace(/\}/g, ')');
+
+            // AI smart detection
+            if (exp.includes('x')) {
+                this.solveEquation(exp);
+                return;
+            }
+
+            let result = Function(`return (${exp})`)();
+            this.currentInput = result.toString();
             this.updateDisplay();
-        }, 1500);
-    }
 
-    // ============ THEME MANAGEMENT ============
-    loadTheme() {
-        const savedTheme = localStorage.getItem(CONFIG.STORAGE_KEYS.THEME);
-        this.isDarkTheme = savedTheme === null || savedTheme === CONFIG.THEMES.DARK;
-        this.applyTheme();
-    }
-
-    toggleTheme() {
-        this.isDarkTheme = !this.isDarkTheme;
-        this.applyTheme();
-        localStorage.setItem(CONFIG.STORAGE_KEYS.THEME, this.isDarkTheme ? CONFIG.THEMES.DARK : CONFIG.THEMES.LIGHT);
-    }
-
-    applyTheme() {
-        const html = document.documentElement;
-        const body = document.body;
-
-        if (this.isDarkTheme) {
-            html.classList.add(CONFIG.THEMES.DARK);
-            body.style.background = 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)';
-            this.themeToggle.textContent = '🌙';
-        } else {
-            html.classList.remove(CONFIG.THEMES.DARK);
-            body.style.background = 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f8fafc 100%)';
-            this.themeToggle.textContent = '☀️';
+        } catch {
+            this.display.value = "Error";
         }
     }
 
-    // ============ MODE MANAGEMENT ============
-    toggleMode() {
-        this.isScientificMode = !this.isScientificMode;
-        this.scientificButtons.classList.toggle('hidden');
-        this.modeToggle.textContent = this.isScientificMode ? 'Scientific' : 'Basic';
-        this.modeToggle.classList.toggle('bg-green-600');
-        this.modeToggle.classList.toggle('bg-blue-600');
-    }
+    // ================= EQUATION SOLVER =================
+    solveEquation(exp) {
+        try {
+            // Supports simple linear: ax + b = 0
+            let eq = exp.replace(/\s/g, '').split('=');
 
-    // ============ HISTORY MANAGEMENT ============
-    loadHistory() {
-        const savedHistory = localStorage.getItem(CONFIG.STORAGE_KEYS.HISTORY);
-        if (savedHistory) {
-            this.history = JSON.parse(savedHistory);
-            this.renderHistory();
+            if (eq.length !== 2) {
+                this.display.value = "Invalid Eq";
+                return;
+            }
+
+            let left = eq[0];
+            let right = eq[1];
+
+            let expression = `(${left})-(${right})`;
+
+            // Replace x with numeric testing
+            let a = this.evaluate(expression.replace(/x/g, '1'));
+            let b = this.evaluate(expression.replace(/x/g, '0'));
+
+            let coeff = a - b;
+            let constant = b;
+
+            let result = -constant / coeff;
+
+            this.currentInput = "x = " + result;
+            this.updateDisplay();
+
+        } catch {
+            this.display.value = "Solve Error";
         }
     }
 
-    addToHistory(expression, result) {
-        const historyItem = {
-            id: Date.now(),
-            expression: expression,
-            result: result,
-            timestamp: new Date().toLocaleTimeString()
-        };
-
-        this.history.unshift(historyItem);
-
-        // Limit history size
-        if (this.history.length > CONFIG.MAX_HISTORY_ITEMS) {
-            this.history = this.history.slice(0, CONFIG.MAX_HISTORY_ITEMS);
-        }
-
-        this.saveHistory();
-        this.renderHistory();
+    evaluate(exp) {
+        return Function(`return (${exp})`)();
     }
 
-    renderHistory() {
-        if (this.history.length === 0) {
-            this.historyContainer.innerHTML = '<p class="text-blue-300 text-center py-4">No calculations yet</p>';
-            return;
-        }
+    // ================= GRAPH =================
+    plotGraph() {
+        if (!this.ctx) return;
 
-        this.historyContainer.innerHTML = '';
+        let exp = this.currentInput;
 
-        this.history.forEach(item => {
-            const historyElement = document.createElement('div');
-            historyElement.className = 'bg-slate-600 hover:bg-slate-500 p-3 rounded-lg transition-colors cursor-pointer group flex justify-between items-center';
-            historyElement.innerHTML = `
-                <div class="flex-1">
-                    <div class="font-mono text-sm font-semibold text-cyan-300">${item.expression} = ${item.result}</div>
-                    <div class="text-xs text-gray-400 mt-1">${item.timestamp}</div>
-                </div>
-                <button class="delete-btn opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-300 text-lg px-2" data-id="${item.id}">
-                    ✕
-                </button>
-            `;
+        this.clearGraph();
 
-            // Click to restore calculation
-            historyElement.addEventListener('click', (e) => {
-                if (!e.target.classList.contains('delete-btn')) {
-                    this.currentInput = item.expression;
-                    this.updateDisplay();
+        this.ctx.beginPath();
+        this.ctx.strokeStyle = "cyan";
+
+        for (let x = -10; x <= 10; x += 0.1) {
+            try {
+                let y = Function(`return ${exp.replace(/x/g, `(${x})`)}`)();
+
+                let canvasX = x * 20 + 200;
+                let canvasY = 200 - y * 20;
+
+                if (x === -10) {
+                    this.ctx.moveTo(canvasX, canvasY);
+                } else {
+                    this.ctx.lineTo(canvasX, canvasY);
                 }
-            });
 
-            // Delete button
-            const deleteBtn = historyElement.querySelector('.delete-btn');
-            deleteBtn.addEventListener('click', () => {
-                this.deleteHistoryItem(item.id);
-            });
-
-            this.historyContainer.appendChild(historyElement);
-        });
-    }
-
-    deleteHistoryItem(id) {
-        this.history = this.history.filter(item => item.id !== id);
-        this.saveHistory();
-        this.renderHistory();
-    }
-
-    clearHistory() {
-        if (confirm('Are you sure you want to clear all calculation history?')) {
-            this.history = [];
-            this.saveHistory();
-            this.renderHistory();
+            } catch {}
         }
+
+        this.ctx.stroke();
     }
 
-    saveHistory() {
-        localStorage.setItem(CONFIG.STORAGE_KEYS.HISTORY, JSON.stringify(this.history));
+    clearGraph() {
+        if (!this.ctx) return;
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
 
-    // ============ MODAL MANAGEMENT ============
-    showModal() {
-        this.helpModal.classList.remove('hidden');
-        this.helpModal.classList.add('flex');
-    }
+    // ================= KEYBOARD =================
+    setupKeyboard() {
+        document.addEventListener('keydown', (e) => {
 
-    hideModal() {
-        this.helpModal.classList.add('hidden');
-        this.helpModal.classList.remove('flex');
+            if (e.key >= '0' && e.key <= '9') this.handleInput(e.key);
+            else if (['+', '-', '*', '/', '.', '(', ')'].includes(e.key)) this.handleInput(e.key);
+            else if (e.key === 'Enter') this.calculate();
+            else if (e.key === 'Backspace') {
+                this.currentInput = this.currentInput.slice(0, -1);
+                this.updateDisplay();
+            }
+            else if (e.key === 'Escape') this.handleClear();
+
+        });
     }
 }
 
-// ============ INITIALIZATION ============
+// INIT
 document.addEventListener('DOMContentLoaded', () => {
-    new Calculator();
+    window.calc = new Calculator();
 });
