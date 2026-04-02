@@ -287,8 +287,10 @@ class Calculator {
                 expression = expression.slice(0, -1);
             }
 
-            // Allow braces and map algebraic function tokens
-            expression = expression.replace(/\{/g, '(').replace(/\}/g, ')');
+            // Allow all bracket types by normalizing to parentheses
+            expression = expression
+                .replace(/\{/g, '(').replace(/\}/g, ')')
+                .replace(/\[/g, '(').replace(/\]/g, ')');
 
             const functionMappings = {
                 '\\babs\\(': 'Math.abs(',
