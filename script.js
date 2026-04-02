@@ -147,11 +147,24 @@ class Calculator {
     }
 
     // ============ INPUT HANDLING ============
-    handleNumber(key) {
-        // Prevent multiple decimals in the same number
-        if (key === '.' && this.currentInput.includes('.')) return;
+    getCurrentNumber() {
+        const tokenMatch = this.currentInput.match(/(?:^|[\+\-\*\/\%\(])([0-9]*\.?[0-9]*)$/);
+        return tokenMatch ? tokenMatch[1] : '';
+    }
 
-        // Replace leading zero
+    handleNumber(key) {
+        if (key === '.') {
+            const currentNumber = this.getCurrentNumber();
+            if (currentNumber.includes('.')) return; // multiple decimals in same token
+
+            if (this.currentInput === '' || /[\+\-\*\/\%\(]$/.test(this.currentInput)) {
+                this.currentInput += '0.';
+                this.updateDisplay();
+                return;
+            }
+        }
+
+        // Replace leading zero with number unless input already includes a decimal or is non-zero
         if (this.currentInput === '0' && key !== '.') {
             this.currentInput = key;
         } else {
@@ -161,11 +174,32 @@ class Calculator {
     }
 
     handleOperator(operator) {
-        // Don't allow operator at start or after another operator
-        if (this.currentInput === '' || /[\+\-\*\/\%]$/.test(this.currentInput)) return;
+        // Allow starting negative sign, but not other leading operators
+        if (this.currentInput === '') {
+            if (operator === '-') {
+                this.currentInput = '-';
+                this.updateDisplay();
+            }
+            return;
+        }
+
+        // Replace any trailing operator with new one (prevent ++, --, **, etc.)
+        if (/[\+\-\*\/\%]$/.test(this.currentInput)) {
+            this.currentInput = this.currentInput.slice(0, -1) + operator;
+            this.updateDisplay();
+            return;
+        }
 
         this.currentInput += operator;
         this.updateDisplay();
+    }
+
+    handleDecimal() {
+        this.handleNumber('.');
+    }
+
+    handleEqual() {
+        this.calculate();
     }
 
     handleAction(action) {
@@ -243,26 +277,37 @@ class Calculator {
         if (this.currentInput === '') return;
 
         try {
-            // Replace symbols for math.js
             let expression = this.currentInput
                 .replace(/×/g, '*')
                 .replace(/÷/g, '/')
-                .replace(/−/g, '-');
+                .replace(/−/g, '-')
+                .replace(/\^/g, '**');
 
-            // Evaluate using math.js for security
-            const result = math.evaluate(expression);
+            // Remove trailing operator to avoid syntax errors
+            if (/[\+\-\*\/\%]$/.test(expression)) {
+                expression = expression.slice(0, -1);
+            }
+
+            // Validate expression to avoid unsafe chars
+            if (/[^0-9\.\+\-\*\/\%\(\)\s]/.test(expression)) {
+                throw new Error('Invalid expression');
+            }
+
+            // Evaluate using Function for safer alternative to eval
+            const result = Function("'use strict'; return (" + expression + ")")();
+
+            if (!Number.isFinite(result)) {
+                throw new Error('Math error');
+            }
+
             const formattedResult = this.formatResult(result);
 
-            // Update displays
             this.previousDisplay.textContent = `${this.currentInput} =`;
             this.display.value = formattedResult;
-
-            // Add to history
             this.addToHistory(this.currentInput, formattedResult);
 
-            // Update state
             this.previousResult = formattedResult;
-            this.currentInput = formattedResult;
+            this.currentInput = formattedResult.toString();
 
         } catch (error) {
             this.showError();
