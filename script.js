@@ -215,60 +215,59 @@ class Calculator {
     }
 
     handleScientific(func) {
-        try {
-            let result;
-            const value = parseFloat(this.currentInput) || 0;
+        // For expression-based behavior, append function call or token
+        const functionAppend = {
+            sqrt: 'sqrt(',
+            cbrt: 'cbrt(',
+            abs: 'abs(',
+            exp: 'exp(',
+            ln: 'ln(',
+            log: 'log(',
+            log10: 'log10(',
+            sin: 'sin(',
+            cos: 'cos(',
+            tan: 'tan(',
+            asin: 'asin(',
+            acos: 'acos(',
+            atan: 'atan(',
+            floor: 'floor(',
+            ceil: 'ceil(',
+            round: 'round(',
+            square: 'pow(',
+            cube: 'pow(',
+            power: 'pow('
+        };
 
-            switch (func) {
-                case 'sqrt':
-                    result = Math.sqrt(value);
-                    break;
-                case 'square':
-                    result = Math.pow(value, 2);
-                    break;
-                case 'cube':
-                    result = Math.pow(value, 3);
-                    break;
-                case 'power':
-                    this.currentInput += '^';
-                    this.updateDisplay();
-                    return;
-                case 'sin':
-                    result = Math.sin(value * Math.PI / 180);
-                    break;
-                case 'cos':
-                    result = Math.cos(value * Math.PI / 180);
-                    break;
-                case 'tan':
-                    result = Math.tan(value * Math.PI / 180);
-                    break;
-                case 'log':
-                    result = Math.log10(value);
-                    break;
-                case 'ln':
-                    result = Math.log(value);
-                    break;
-                case 'pi':
-                    this.currentInput += Math.PI.toString();
-                    this.updateDisplay();
-                    return;
-                case 'e':
-                    this.currentInput += Math.E.toString();
-                    this.updateDisplay();
-                    return;
-                case 'factorial':
-                    result = this.factorial(value);
-                    break;
-                default:
-                    return;
-            }
+        if (func === 'pi') {
+            this.currentInput += Math.PI.toString();
+            this.updateDisplay();
+            return;
+        }
 
-            if (result !== undefined) {
-                this.currentInput = this.formatResult(result);
-                this.updateDisplay();
+        if (func === 'e') {
+            this.currentInput += Math.E.toString();
+            this.updateDisplay();
+            return;
+        }
+
+        if (func === 'factorial') {
+            // Add factorial operator or function-style call
+            this.currentInput += '!';
+            this.updateDisplay();
+            return;
+        }
+
+        if (functionAppend[func]) {
+            if (func === 'square') {
+                this.currentInput += 'pow(';
+            } else if (func === 'cube') {
+                this.currentInput += 'pow(';
+            } else if (func === 'power') {
+                this.currentInput += 'pow(';
+            } else {
+                this.currentInput += functionAppend[func];
             }
-        } catch (error) {
-            this.showError();
+            this.updateDisplay();
         }
     }
 
@@ -288,13 +287,45 @@ class Calculator {
                 expression = expression.slice(0, -1);
             }
 
+            // Allow braces and map algebraic function tokens
+            expression = expression.replace(/\{/g, '(').replace(/\}/g, ')');
+
+            const functionMappings = {
+                '\\babs\\(': 'Math.abs(',
+                '\\bsqrt\\(': 'Math.sqrt(',
+                '\\bcbrt\\(': 'Math.cbrt(',
+                '\\bexp\\(': 'Math.exp(',
+                '\\bln\\(': 'Math.log(',
+                '\\blog10\\(': 'Math.log10(',
+                '\\blog\\(': 'Math.log10(',
+                '\\bsin\\(': 'Math.sin(',
+                '\\bcos\\(': 'Math.cos(',
+                '\\btan\\(': 'Math.tan(',
+                '\\basin\\(': 'Math.asin(',
+                '\\bacos\\(': 'Math.acos(',
+                '\\batan\\(': 'Math.atan(',
+                '\\bfloor\\(': 'Math.floor(',
+                '\\bceil\\(': 'Math.ceil(',
+                '\\bround\\(': 'Math.round(',
+                '\\bpow\\(': 'Math.pow('
+            };
+
+            for (const [pattern, replacement] of Object.entries(functionMappings)) {
+                expression = expression.replace(new RegExp(pattern, 'g'), replacement);
+            }
+
+            // Factorial `!` support using helper function
+            if (expression.includes('!')) {
+                expression = expression.replace(/(\d+)!/g, 'factorial($1)');
+            }
+
             // Validate expression to avoid unsafe chars
-            if (/[^0-9\.\+\-\*\/\%\(\)\s]/.test(expression)) {
+            if (/[^0-9\.\+\-\*\/\%\(\)\sA-Za-z\,]/.test(expression)) {
                 throw new Error('Invalid expression');
             }
 
             // Evaluate using Function for safer alternative to eval
-            const result = Function("'use strict'; return (" + expression + ")")();
+            const result = Function("'use strict'; const factorial = n => (Number.isInteger(n) && n>=0 ? (n<=1 ? 1 : n*factorial(n-1)) : NaN); return (" + expression + ")")();
 
             if (!Number.isFinite(result)) {
                 throw new Error('Math error');
